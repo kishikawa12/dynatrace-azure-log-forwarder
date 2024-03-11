@@ -47,19 +47,19 @@ metadata_engine = MetadataEngine()
 log_filter = LogFilter()
 
 
-def main(events: List[func.EventHubEvent]):
+def main(myblob: func.InputStream):
     self_monitoring = SelfMonitoring(execution_time=datetime.utcnow())
-    process_logs(events, self_monitoring)
+    process_logs(myblob, self_monitoring)
 
 
-def process_logs(events: List[func.EventHubEvent], self_monitoring: SelfMonitoring):
+def process_logs(myblob: func.InputStream, self_monitoring: SelfMonitoring):
     try:
         verify_dt_access_params_provided()
         logging.throttling_counter.reset_throttling_counter()
 
         start_time = time.perf_counter()
 
-        logs_to_be_sent_to_dt = extract_logs(events, self_monitoring)
+        logs_to_be_sent_to_dt = extract_logs(myblob, self_monitoring)
 
         self_monitoring.processing_time = time.perf_counter() - start_time
         logging.info(f"Successfully parsed {len(logs_to_be_sent_to_dt)} log records")
@@ -81,32 +81,28 @@ def verify_dt_access_params_provided():
         raise Exception(f"Please set {DYNATRACE_URL} and {DYNATRACE_ACCESS_KEY} in application settings")
 
 
-def extract_logs(events: List[func.EventHubEvent], self_monitoring: SelfMonitoring):
+def extract_logs(myblob: func.InputStream, self_monitoring: SelfMonitoring):
     logs_to_be_sent_to_dt = []
-    for event in events:
-        timestamp = event.enqueued_time.replace(microsecond=0).replace(tzinfo=None).isoformat() + 'Z' if event.enqueued_time else None
-        if is_too_old(timestamp, self_monitoring, "event"):
-            continue
-
-        event_body = event.get_body().decode('utf-8')
-        event_json = parse_to_json(event_body)
-        if event_json:
-            records = event_json.get("records", [])
-            for record in records:
-                try:
-                    extracted_record = extract_dt_record(record, self_monitoring)
-                    if extracted_record:
-                        logs_to_be_sent_to_dt.append(extracted_record)
-                except JSONDecodeError as json_e:
-                    self_monitoring.parsing_errors += 1
-                    logging.exception(
-                        f"Failed to decode JSON for the record (base64 applied for safety!): {util_misc.to_base64_text(str(record))}. Exception: {json_e}",
-                        "log-record-parsing-jsondecode-exception")
-                except Exception as e:
-                    self_monitoring.parsing_errors += 1
-                    logging.exception(
-                        f"Failed to parse log record (base64 applied for safety!): {util_misc.to_base64_text(str(record))}. Exception: {e}",
-                        "log-record-parsing-exception")
+    blob_content_bytes = myblob.read()
+    blob_content_str = blob_content_bytes.decode('utf-8')
+    json_object = json.loads(blob_content_str)
+    if json_object:
+        records = json_object.get("records", [])
+        for record in records:
+            try:
+                extracted_record = extract_dt_record(record, self_monitoring)
+                if extracted_record:
+                    logs_to_be_sent_to_dt.append(extracted_record)
+            except JSONDecodeError as json_e:
+                self_monitoring.parsing_errors += 1
+                logging.exception(
+                    f"Failed to decode JSON for the record (base64 applied for safety!): {util_misc.to_base64_text(str(record))}. Exception: {json_e}",
+                    "log-record-parsing-jsondecode-exception")
+            except Exception as e:
+                self_monitoring.parsing_errors += 1
+                logging.exception(
+                    f"Failed to parse log record (base64 applied for safety!): {util_misc.to_base64_text(str(record))}. Exception: {e}",
+                    "log-record-parsing-exception")
     return logs_to_be_sent_to_dt
 
 

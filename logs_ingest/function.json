@@ -2,14 +2,11 @@
   "scriptFile": "main.py",
   "bindings": [
     {
-      "type": "eventHubTrigger",
-      "name": "events",
+      "type": "blobTrigger",
+      "name": "myblob",
       "direction": "in",
-      "eventHubName": "%EVENTHUB_NAME%",
-      "connection": "EVENTHUB_CONNECTION_STRING",
-      "cardinality": "many",
-      "consumerGroup": "$Default",
-      "dataType": "binary"
+      "path": "%BLOB_STORAGE_PATH%",
+      "connection": "STORAGE_ACCOUNT_CONNECTION"
     }
   ],
   "retry": {
