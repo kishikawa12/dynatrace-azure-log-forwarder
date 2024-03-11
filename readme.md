@@ -1,13 +1,12 @@
 # Dynatrace Azure Log Forwarder
 ## Overview
- This project provides a mechanism that allows streaming Azure logs from Azure Event Hub into Dynatrace Logs via Azure Function App. It supports both: Azure Resource Logs and Azure Activity Logs.
+ This is a fork of the [Dynatrace Azure Log Forwarder](https://github.com/dynatrace-oss/dynatrace-azure-log-forwarder) with the event hub trigger replaced with a blog storage trigger. 
 
-
-## Prerequisites
-Please refer to [Prerequisites](https://www.dynatrace.com/support/help/shortlink/azure-log-fwd#prerequisites-).
- 
-## Deployment
-Please refer  to [Dynatrace log forwarder](https://www.dynatrace.com/support/help/shortlink/azure-log-fwd).
+Environment Variables:
+ * `DYNATRACE_URL` - Dynatrace environment URL
+ * `DYNATRACE_ACCESS_KEY` - Dynatrace API token
+ * `STORAGE_ACCOUNT_CONNECTION` - Storage account connection string
+ * `BLOB_STORAGE_PATH` - Container to monitor
 
 ## Viewing Azure logs in Dynatrace UI
 Please refer to [How to view Azure logs](https://www.dynatrace.com/support/help/shortlink/azure-log-fwd#view-azure-logs).
