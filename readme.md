@@ -1,6 +1,6 @@
 # Dynatrace Azure Log Forwarder
 ## Overview
- This is a fork of the [Dynatrace Azure Log Forwarder](https://github.com/dynatrace-oss/dynatrace-azure-log-forwarder) with the event hub trigger replaced with a blog storage trigger. 
+ This is a fork of the [Dynatrace Azure Log Forwarder](https://github.com/dynatrace-oss/dynatrace-azure-log-forwarder) with the event hub trigger replaced with a blob storage trigger. 
 
 Environment Variables:
  * `DYNATRACE_URL` - Dynatrace environment URL
